@@ -8,64 +8,43 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/gpio.h"
 #include "driverlib/timer.h"
+#include "driverlib/uart.h"
+#include "driverlib/pin_map.h"
 /**
  * main.c
  */
 int main(void)
 {
-    uint8_t BOTON;
+//----------------------------------------INICIALIZACION DEL RELOJ-------------------------------------------
     SysCtlClockSet(SYSCTL_SYSDIV_5 | SYSCTL_USE_PLL |  SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN);
+//---------------------------------------INICIALIZACION DE PERIFERICOS---------------------------------------
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+//---------------------------------------SETEO DE PINES COMO SALIDA (LEDS)----------------------------------
     GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3);
-    GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_4);
-    GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+//---------------------------------------SE ACTIVA EL PERIFERICO DE TIMER0---------------------------------
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+//----------------------------------------INICIALIZACION DEL TIMER 0------------------------------------------
+    TimerConfigure(TIMER0_BASE,TIMER_CFG_PERIODIC);
+//----------------------------------------CONFIGURACION DEL TIEMPO DEL TIMER 0-------------------------------
+    TimerLoadSet(TIMER0_BASE, TIMER_BOTH, 16000000 -1);
+//-----------------------------------------SE ACTIVAN LAS INTERRUPCIONES DEL TIMER0------------------------------------
+    IntEnable(INT_TIMER0A);
+//----------------------------------------SE ACTIVA LAS INTERRUPCIONES DEL TIMER-----------------------------
+    TimerIntEnable(TIMER0_BASE,TIMER_TIMA_TIMEOUT);
+    //----------------------------------------ACTIVAMOS LAS INTERRUPCIONES--------------------------------------
+        IntMasterEnable();
+//---------------------------------------SE ENCIENDE EL TIMER 0----------------------------------------------
+    TimerEnable(TIMER0_BASE, TIMER_BOTH);
 
     while(1){
-        if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_4)==0)
-        {
-            BOTON=1;
-        }
-        if(BOTON==1)
-        {
-//-----------------------VERDE ENCENDIDO-------------------------------
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
-            SysCtlDelay(20000000);
-//-------------------------PARPADEO DE VERDE---------------------------
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0X00);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0X00);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0X00);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0X00);
-            SysCtlDelay(10000000);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2, 0X00);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
-            SysCtlDelay(10000000);
-//-----------------------------AMARILLO------------------------------------------------
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 , GPIO_PIN_1);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
-            SysCtlDelay(20000000);
-//---------------------------------ROJO--------------------------------------------------
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, GPIO_PIN_1);
-            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, 0x00);
-            SysCtlDelay(20000000);
-            GPIOPinWrite(GPIO_PORTF_BASE,GPIO_PIN_1 |GPIO_PIN_2 | GPIO_PIN_3, 0x00);
-            BOTON=0;
-        }
+    }
+}
+void Timer0IntHandler(void){
+    TimerIntClear(TIMER0_BASE,TIMER_TIMA_TIMEOUT);
+    if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_2)){
+        GPIOPinWrite(GPIO_PORTF_BASE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3,0x00);
+    }
+    else{
+        GPIOPinWrite(GPIO_PORTF_BASE,GPIO_PIN_2,GPIO_PIN_2);
     }
 }
