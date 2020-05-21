@@ -21,47 +21,35 @@ uint8_t RED=0;
 uint8_t GREEN=0;
 
 void UART0IntHandler(void){
-    UARTIntClear(UART0_BASE,UARTIntStatus(UART0_BASE, true)); //clear the asserted interrupts
-    LED = UARTCharGet(UART0_BASE);
-    if(LED=='b' && BLUE==0){
+    UARTIntClear(UART0_BASE,UARTIntStatus(UART0_BASE, true)); //se limpia la bandera de la interrupcion
+    LED = UARTCharGet(UART0_BASE);//se lee lo que entra al UART0
+    if(LED=='b' && BLUE==0){//la vabriable BLUE cambia a 1
         BLUE=1;
-        RED=0;
-        GREEN=0;
     }
-    else if(LED=='b' && BLUE==1){
+    else if(LED=='b' && BLUE==1){//la vabriable BLUE cambia a 0
         BLUE=0;
-        RED=0;
-        GREEN=0;
     }
-    else if(LED=='r' && RED==0){
+    else if(LED=='r' && RED==0){//la vabriable RED cambia a 1
         RED=1;
-        BLUE=0;
-        GREEN=0;
     }
-    else if(LED=='r' && RED==1){
+    else if(LED=='r' && RED==1){//la vabriable RED cambia a 0
         RED=0;
-        BLUE=0;
-        GREEN=0;
     }
-    else if(LED=='g' && GREEN==0){
+    else if(LED=='g' && GREEN==0){//la vabriable GREEN cambia a 1
         GREEN=1;
-        RED=0;
-        BLUE=0;
     }
-    else if(LED=='g' && GREEN==1){
+    else if(LED=='g' && GREEN==1){//la vabriable GREEN cambia a 0
         GREEN=0;
-        RED=0;
-        BLUE=0;
     }
 }
 
 void Timer0IntHandler(void){
-    TimerIntClear(TIMER0_BASE,TIMER_TIMA_TIMEOUT);
-    if(Status==1){
+    TimerIntClear(TIMER0_BASE,TIMER_TIMA_TIMEOUT);//se limpia a bandera del timer0
+    if(Status==1){//si Status es 1 todas las LED se apagan
         GPIOPinWrite(GPIO_PORTF_BASE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3,0x00);
         Status= 0;
     }
-    else{
+    else{//si no se enciende la led correspondiente a la varible que este en 1, incluso se pueden combinar
         Status=1;
         if(RED){
             GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, GPIO_PIN_1);
